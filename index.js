@@ -16,12 +16,14 @@ app.get('/api/joined-orders', async (req, res) => {
 })
 
 app.post('/api/llm', async (req, res) => {
-    const prompt = req.body.params;
+    const { prompt } = req.body;
+    console.log('prompt: ' + prompt)
     try{
+        
         const ansewer = await queryDeepSeek(prompt)
-        res.json({ ansewer })
+        res.status(200).json({ ansewer })
     }catch(err){
-        res.status(500.).json({error: "LLM error"})
+        res.status(500.).json({error: "error llm "})
     }
 })
 

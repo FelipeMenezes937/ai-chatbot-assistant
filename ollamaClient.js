@@ -1,39 +1,48 @@
-import fetch from "node-fetch";
+const OLLAMA_URL = "http://localhost:11434/api/chat";
+const MODEL = "deepseek-r1:1.5b";
 
-const OLLAMA_API_URL = "http://localhost:11434/api/chat";
-const MODEL = "deepseek-r1:8b";
+async function queryDeepSeek(prompt) {
+  console.log("🟢 Entrou na queryDeepSeek");
+  console.log("📨 Prompt:", prompt);
 
-/**
- * Envia um prompt simples para o DeepSeek-R1 via Ollama
- * @param {string} prompt
- * @returns {Promise<string>}
- */
-export async function queryDeepSeek(prompt) {
-  if (!prompt || typeof prompt !== "string") {
-    throw new Error("queryDeepSeek requires a non-empty string prompt");
+  try {
+    console.log("🌐 Enviando request para Ollama...");
+
+    const response = await fetch(OLLAMA_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        messages: [
+            { role: "system", content: "Responda de forma curta e direta." },
+            { role: "user", content: prompt }
+        ],
+        think: false,
+        stream: false
+      })
+    });
+
+    console.log("Status da resposta:", response.status);
+    
+    const rawText = await response.text();
+    console.log("Resposta bruta do Ollama:", rawText);
+
+    if (!response.ok) {
+      throw new Error(`Ollama respondeu erro ${response.status}`);
+    }
+
+    const data = JSON.parse(rawText);
+
+    console.log("Parse JSON OK");
+
+    return data.message.content;
+
+  } catch (err) {
+    console.error("ERRO DENTRO queryDeepSeek:", err.message);
+    throw err; // isso causa o 500
   }
-
-  const response = await fetch(OLLAMA_API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      messages: [
-        { role: "user", content: prompt }
-      ],
-      stream: false
-    })
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `Ollama API error (${response.status}): ${errorText}`
-    );
-  }
-
-  const data = await response.json();
-  return data.message?.content ?? "";
 }
+
+module.exports = { queryDeepSeek };
