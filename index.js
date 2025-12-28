@@ -17,7 +17,6 @@ app.get('/api/joined-orders', async (req, res) => {
 
 app.post('/api/llm', async (req, res) => {
     const { prompt } = req.body;
-    console.log('prompt: ' + prompt)
     try{
         
         const ansewer = await queryDeepSeek(prompt)
